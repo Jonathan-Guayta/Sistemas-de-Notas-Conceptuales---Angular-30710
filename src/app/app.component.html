@@ -1,0 +1,35 @@
+<div class="shell">
+  <aside class="dossier-tabs">
+    <div class="brand">
+      <span class="brand-mark">NC</span>
+      <div>
+        <strong>Notas Conceptuales</strong>
+        <span>Convocatoria de Vinculación 2026</span>
+      </div>
+    </div>
+
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="tab-index">01</span> Panel general
+      </a>
+      <a routerLink="/convocatorias" routerLinkActive="active">
+        <span class="tab-index">02</span> Convocatorias
+      </a>
+      <a routerLink="/directores" routerLinkActive="active">
+        <span class="tab-index">03</span> Directores
+      </a>
+      <a routerLink="/notas" routerLinkActive="active">
+        <span class="tab-index">04</span> Notas conceptuales
+      </a>
+      <a routerLink="/notas/nueva" routerLinkActive="active" class="tab-cta">
+        <span class="tab-index">＋</span> Nueva nota conceptual
+      </a>
+    </nav>
+
+    <p class="dossier-footnote">Basado en el Anexo 1 de la Convocatoria de Notas Conceptuales 2026.</p>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

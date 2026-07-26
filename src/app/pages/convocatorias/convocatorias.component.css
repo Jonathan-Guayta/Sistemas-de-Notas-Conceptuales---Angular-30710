@@ -1,0 +1,20 @@
+.conv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1em;
+}
+.conv-card { padding: 1.3em 1.4em; display: flex; flex-direction: column; gap: 0.5em; }
+.conv-card-head { display: flex; justify-content: space-between; align-items: center; }
+.conv-card h3 { font-size: 1.05rem; margin: 0; }
+.conv-dates { font-size: 0.8rem; color: var(--slate-500); margin: 0; font-family: var(--font-mono); }
+.conv-desc { font-size: 0.88rem; color: var(--ink-700); margin: 0; }
+.conv-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--ink-700);
+  background: var(--paper-100);
+  border-radius: 6px;
+  padding: 0.5em 0.7em;
+  margin-top: 0.3em;
+}

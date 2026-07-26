@@ -1,0 +1,449 @@
+<div class="container">
+  <header class="page-head">
+    <p class="eyebrow">Nueva nota conceptual</p>
+    <h1>Registra una nota conceptual</h1>
+    <p class="lede">Completa cada sección siguiendo el Anexo 1 de la convocatoria. Nada viene precargado: todo lo que veas aquí es lo que tú ingreses.</p>
+  </header>
+
+  @if (data.convocatorias().length === 0 || data.directores().length === 0) {
+    <div class="card empty-state">
+      <h3>Antes de continuar</h3>
+      <p>Necesitas al menos una convocatoria y un director registrados.</p>
+      <div class="empty-actions">
+        @if (data.convocatorias().length === 0) { <a routerLink="/convocatorias" class="btn btn-primary">Crear convocatoria</a> }
+        @if (data.directores().length === 0) { <a routerLink="/directores" class="btn btn-primary">Registrar director</a> }
+      </div>
+    </div>
+  } @else {
+
+  <div class="wizard">
+    <ol class="wizard-steps">
+      @for (p of pasos; track p.titulo; let i = $index) {
+        <li [class.active]="paso() === i" [class.done]="paso() > i" (click)="irAPaso(i)">
+          <span class="step-index">{{ i + 1 }}</span>
+          <span class="step-label">
+            <strong>{{ p.titulo }}</strong>
+            <small>{{ p.descripcion }}</small>
+          </span>
+        </li>
+      }
+    </ol>
+
+    <div class="wizard-panel card">
+      @if (error()) { <div class="alert">{{ error() }}</div> }
+
+      @switch (paso()) {
+        @case (0) {
+          <h3>1. Datos generales</h3>
+          <div class="field">
+            <label for="conv">Convocatoria</label>
+            <select id="conv" [(ngModel)]="convocatoriaId">
+              <option value="" disabled>Selecciona una convocatoria</option>
+              @for (c of data.convocatorias(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label for="nombreNota">Nombre de la nota conceptual</label>
+            <input id="nombreNota" [(ngModel)]="nombre" placeholder="¿Qué se va a hacer? ¿Sobre qué población?">
+            <p class="field-hint">Ej: "Capacitación en competencias digitales para artesanos de Sangolquí".</p>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="sedeNota">Sede / Unidad Académica Especial</label>
+              <select id="sedeNota" [(ngModel)]="sede">
+                @for (s of sedes; track s) { <option [value]="s">{{ s }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="deptoNota">Departamento</label>
+              <select id="deptoNota" [(ngModel)]="departamento">
+                @for (d of departamentos; track d) { <option [value]="d">{{ d }}</option> }
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="director">Director/a del proyecto</label>
+            <select id="director" [(ngModel)]="directorId">
+              <option value="" disabled>Selecciona un director</option>
+              @for (d of data.directores(); track d.id) { <option [value]="d.id">{{ d.nombres }} — {{ d.correo }}</option> }
+            </select>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="fi">Fecha de inicio planificada</label>
+              <input id="fi" type="date" [(ngModel)]="fechaInicio">
+            </div>
+            <div class="field">
+              <label for="ff">Fecha de finalización planificada</label>
+              <input id="ff" type="date" [(ngModel)]="fechaFin">
+            </div>
+          </div>
+        }
+
+        @case (1) {
+          <h3>2. Localización</h3>
+          <label>Cobertura</label>
+          <div class="chip-group">
+            @for (c of coberturas; track c) {
+              <label class="chip" [class.checked]="cobertura.includes(c)">
+                <input type="checkbox" [checked]="cobertura.includes(c)" (change)="toggleCobertura(c)"> {{ c }}
+              </label>
+            }
+          </div>
+          <div class="grid-2" style="margin-top:1.2em">
+            <div class="field"><label for="provincia">Provincia</label><input id="provincia" [(ngModel)]="provincia"></div>
+            <div class="field"><label for="canton">Cantón</label><input id="canton" [(ngModel)]="canton"></div>
+            <div class="field"><label for="parroquia">Parroquia</label><input id="parroquia" [(ngModel)]="parroquia"></div>
+            <div class="field"><label for="barrio">Barrio o comunidad</label><input id="barrio" [(ngModel)]="barrio"></div>
+          </div>
+          <label>Sector de la población beneficiaria</label>
+          <div class="checkbox-row"><input type="checkbox" id="um" [(ngModel)]="sector.urbanoMarginal"><label for="um">Urbano marginal</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="ru" [(ngModel)]="sector.rural"><label for="ru">Rural</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="gap" [(ngModel)]="sector.grupoAtencionPrioritaria"><label for="gap">Grupo de atención prioritaria</label></div>
+        }
+
+        @case (2) {
+          <h3>3. Alineamiento</h3>
+          <p class="lede small">La propuesta debe alinearse al menos a un ámbito prioritario.</p>
+          <div class="ambito-list">
+            <label class="ambito" [class.checked]="ambitos.desarrolloTerritorial">
+              <input type="checkbox" [(ngModel)]="ambitos.desarrolloTerritorial">
+              <span><strong>{{ ambitosPrioritarios[0].nombre }}</strong><small>{{ ambitosPrioritarios[0].definicion }}</small></span>
+            </label>
+            <label class="ambito" [class.checked]="ambitos.sostenibilidadAmbiental">
+              <input type="checkbox" [(ngModel)]="ambitos.sostenibilidadAmbiental">
+              <span><strong>{{ ambitosPrioritarios[1].nombre }}</strong><small>{{ ambitosPrioritarios[1].definicion }}</small></span>
+            </label>
+            <label class="ambito" [class.checked]="ambitos.innovacionSocial">
+              <input type="checkbox" [(ngModel)]="ambitos.innovacionSocial">
+              <span><strong>{{ ambitosPrioritarios[2].nombre }}</strong><small>{{ ambitosPrioritarios[2].definicion }}</small></span>
+            </label>
+          </div>
+
+          <h4>Objetivos de Desarrollo Sostenible (ODS 2030)</h4>
+          <div class="grid-2">
+            <div class="field">
+              <label for="ods">Objetivo</label>
+              <select id="ods" [(ngModel)]="odsObjetivo" (ngModelChange)="onOdsObjetivoChange()">
+                <option value="" disabled>Elija un elemento</option>
+                @for (o of odsKeys; track o) { <option [value]="o">{{ o }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="odsMeta">Meta</label>
+              <select id="odsMeta" [(ngModel)]="odsMeta" [disabled]="!odsObjetivo">
+                <option value="" disabled>{{ odsObjetivo ? 'Seleccione una meta' : 'Seleccione primero un ODS' }}</option>
+                @for (m of odsMetasDisponibles; track m) { <option [value]="m">{{ m }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <h4>Campos de educación y capacitación (CINE-UNESCO)</h4>
+          <div class="grid-3">
+            <div class="field">
+              <label for="cineA">Campo amplio</label>
+              <select id="cineA" [(ngModel)]="cineCampoAmplio" (ngModelChange)="onCineAmplioChange()">
+                <option value="" disabled>Elija un elemento</option>
+                @for (c of cineAmplios; track c) { <option [value]="c">{{ c }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="cineE">Campo específico</label>
+              <select id="cineE" [(ngModel)]="cineCampoEspecifico" (ngModelChange)="onCineEspecificoChange()" [disabled]="!cineCampoAmplio">
+                <option value="" disabled>{{ cineCampoAmplio ? 'Seleccione un campo' : 'Seleccione primero un campo amplio' }}</option>
+                @for (c of cineEspecificosDisponibles; track c) { <option [value]="c">{{ c }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="cineD">Campo detallado</label>
+              <select id="cineD" [(ngModel)]="cineCampoDetallado" [disabled]="!cineCampoEspecifico">
+                <option value="" disabled>{{ cineCampoEspecifico ? 'Seleccione un campo' : 'Seleccione primero un campo específico' }}</option>
+                @for (c of cineDetalladosDisponibles; track c) { <option [value]="c">{{ c }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <h4>Plan Nacional de Desarrollo (PND)</h4>
+          <div class="grid-2">
+            <div class="field">
+              <label for="pndO">Objetivo del PND</label>
+              <select id="pndO" [(ngModel)]="pndObjetivo" (ngModelChange)="onPndObjetivoChange()">
+                <option value="" disabled>Elija un elemento</option>
+                @for (o of pndObjetivos; track o) { <option [value]="o">{{ o }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="pndP">Política del PND</label>
+              <select id="pndP" [(ngModel)]="pndPolitica" [disabled]="!pndObjetivo">
+                <option value="" disabled>{{ pndObjetivo ? 'Seleccione una política' : 'Seleccione primero un objetivo' }}</option>
+                @for (p of pndPoliticasDisponibles; track p) { <option [value]="p">{{ p }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <h4>Objetivos territoriales (PDyOT de los GADs)</h4>
+          <div class="field"><label for="gadP">Objetivo GAD Provincial</label><textarea id="gadP" [(ngModel)]="gadProvincial"></textarea></div>
+          <div class="field"><label for="gadC">Objetivo GAD Cantonal</label><textarea id="gadC" [(ngModel)]="gadCantonal"></textarea></div>
+          <div class="field"><label for="gadPa">Objetivo GAD Parroquial</label><textarea id="gadPa" [(ngModel)]="gadParroquial"></textarea></div>
+          <div class="field"><label for="gadE">Objetivo de la entidad auspiciante o comunidad beneficiaria</label><textarea id="gadE" [(ngModel)]="gadEntidadAuspiciante"></textarea></div>
+
+          <h4>Plan Estratégico Institucional</h4>
+          <div class="grid-2">
+            <div class="field">
+              <label for="peiO">Objetivo del plan estratégico</label>
+              <select id="peiO" [(ngModel)]="peiObjetivo" (ngModelChange)="onPeiObjetivoChange()">
+                <option value="" disabled>Elija un elemento</option>
+                @for (o of peiObjetivos; track o) { <option [value]="o">{{ o }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="peiE">Estrategia del plan estratégico</label>
+              <select id="peiE" [(ngModel)]="peiEstrategia" [disabled]="!peiObjetivo">
+                <option value="" disabled>{{ peiObjetivo ? 'Seleccione una estrategia' : 'Seleccione primero un objetivo' }}</option>
+                @for (e of peiEstrategiasDisponibles; track e) { <option [value]="e">{{ e }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="linea">Línea de investigación</label>
+              <select id="linea" [(ngModel)]="lineaInvestigacion">
+                <option value="" disabled>Elija un elemento</option>
+                @for (l of lineasInvestigacion; track l) { <option [value]="l">{{ l }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <h4>Dominio académico</h4>
+          <div class="grid-2">
+            <div class="field">
+              <label for="domI">Dominio institucional</label>
+              <select id="domI" [(ngModel)]="dominioInstitucional" (ngModelChange)="onDominioInstitucionalChange()">
+                <option value="" disabled>Elija un elemento</option>
+                @for (d of dominiosInstitucionales; track d) { <option [value]="d">{{ d }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label for="domA">Dominio académico</label>
+              <select id="domA" [(ngModel)]="dominioAcademico" [disabled]="!dominioInstitucional">
+                <option value="" disabled>{{ dominioInstitucional ? 'Seleccione un dominio' : 'Seleccione primero un dominio institucional' }}</option>
+                @for (d of dominiosAcademicosDisponibles; track d) { <option [value]="d">{{ d }}</option> }
+              </select>
+            </div>
+          </div>
+        }
+
+        @case (3) {
+          <h3>4. Departamentos, carreras participantes e impactos esperados</h3>
+
+          <h4>Departamentos participantes</h4>
+          <table class="mini-table">
+            <thead><tr><th>Sede</th><th>Departamento</th><th>Objetivo de la nota</th><th>Nro. docentes</th><th></th></tr></thead>
+            <tbody>
+              @for (dp of departamentosParticipantes; track $index; let i = $index) {
+                <tr>
+                  <td><select [(ngModel)]="dp.sede">@for (s of sedes; track s) {<option [value]="s">{{s}}</option>}</select></td>
+                  <td><select [(ngModel)]="dp.departamento">@for (d of departamentos; track d) {<option [value]="d">{{d}}</option>}</select></td>
+                  <td><input [(ngModel)]="dp.objetivoNota"></td>
+                  <td><input type="number" min="0" [(ngModel)]="dp.nroDocentes"></td>
+                  <td><button class="btn btn-danger btn-sm" (click)="quitarDepartamentoParticipante(i)">Quitar</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <button class="btn btn-ghost btn-sm" (click)="agregarDepartamentoParticipante()">＋ Agregar departamento</button>
+
+          <h4>Carreras participantes</h4>
+          <table class="mini-table">
+            <thead><tr><th>Sede</th><th>Carrera</th><th>Objetivo de la nota</th><th>Nro. estudiantes</th><th></th></tr></thead>
+            <tbody>
+              @for (cp of carrerasParticipantes; track $index; let i = $index) {
+                <tr>
+                  <td><select [(ngModel)]="cp.sede">@for (s of sedes; track s) {<option [value]="s">{{s}}</option>}</select></td>
+                  <td><input [(ngModel)]="cp.carrera" placeholder="Ej. Ingeniería en TI"></td>
+                  <td><input [(ngModel)]="cp.objetivoNota"></td>
+                  <td><input type="number" min="0" [(ngModel)]="cp.nroEstudiantes"></td>
+                  <td><button class="btn btn-danger btn-sm" (click)="quitarCarreraParticipante(i)">Quitar</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <button class="btn btn-ghost btn-sm" (click)="agregarCarreraParticipante()">＋ Agregar carrera</button>
+
+          <h4 style="margin-top:1.6em">Impactos esperados</h4>
+          <div class="field"><label for="impEco">Impacto económico</label><textarea id="impEco" [(ngModel)]="impactos.economico" placeholder="Mejoramiento de condiciones económicas de la población objetivo."></textarea></div>
+          <div class="field"><label for="impSoc">Impacto social</label><textarea id="impSoc" [(ngModel)]="impactos.social" placeholder="Salud, educación, seguridad, vivienda, servicios básicos..."></textarea></div>
+          <div class="field"><label for="impPol">Impacto político</label><textarea id="impPol" [(ngModel)]="impactos.politico" placeholder="Alianzas, convenios y cartas de compromiso..."></textarea></div>
+          <div class="field"><label for="impCie">Impacto científico</label><textarea id="impCie" [(ngModel)]="impactos.cientifico" placeholder="Aporte teórico y práctico, publicaciones..."></textarea></div>
+          <div class="field"><label for="impAmb">Impacto ambiental</label><textarea id="impAmb" [(ngModel)]="impactos.ambiental" placeholder="Buenas prácticas y políticas ambientales..."></textarea></div>
+          <div class="field"><label for="impOtr">Otros impactos</label><textarea id="impOtr" [(ngModel)]="impactos.otros"></textarea></div>
+        }
+
+        @case (4) {
+          <h3>5. Identificación y caracterización de la población objetivo</h3>
+          <p class="lede small">Referencia ≥ Potencial ≥ Objetivo/beneficiario directo.</p>
+          <div class="grid-3">
+            <div class="field">
+              <label for="pRef">Población de referencia</label>
+              <input id="pRef" type="number" min="0" [(ngModel)]="poblacionReferencia">
+              <p class="field-hint">Población total del área de intervención.</p>
+            </div>
+            <div class="field">
+              <label for="pPot">Población potencial</label>
+              <input id="pPot" type="number" min="0" [(ngModel)]="poblacionPotencial">
+              <p class="field-hint">Necesita el bien/servicio, aunque no siempre lo requerirá.</p>
+            </div>
+            <div class="field">
+              <label for="pObj">Población objetivo / beneficiario directo</label>
+              <input id="pObj" type="number" min="0" [(ngModel)]="poblacionObjetivo">
+              <p class="field-hint">Necesita y requiere el bien o servicio ofrecido.</p>
+            </div>
+          </div>
+        }
+
+        @case (5) {
+          <h3>6. Financiamiento y presupuesto</h3>
+          <p class="lede small">Presupuesto institucional solicitado. Límite por nota: USD 20 000,00.</p>
+
+          <table class="mini-table">
+            <thead><tr><th>Ítem</th><th>Descripción</th><th>Bien o servicio</th><th>Cant.</th><th>V. Unitario</th><th>Total</th><th></th></tr></thead>
+            <tbody>
+              @for (it of itemsPresupuesto; track it.numeroItem; let i = $index) {
+                <tr>
+                  <td class="folio">{{ it.numeroItem }}</td>
+                  <td>{{ it.descripcion }}</td>
+                  <td>{{ it.nombreBienServicio }}</td>
+                  <td>{{ it.cantidad }}</td>
+                  <td>${{ it.valorUnitario | number:'1.2-2' }}</td>
+                  <td>${{ (it.cantidad * it.valorUnitario) | number:'1.2-2' }}</td>
+                  <td><button class="btn btn-danger btn-sm" (click)="quitarItem(i)">Quitar</button></td>
+                </tr>
+              }
+              @if (itemsPresupuesto.length === 0) {
+                <tr><td colspan="7" class="muted">Aún no has agregado ítems presupuestarios.</td></tr>
+              }
+            </tbody>
+            @if (itemsPresupuesto.length > 0) {
+              <tfoot><tr><td colspan="5" style="text-align:right; font-weight:600">TOTAL</td><td style="font-weight:700">${{ totalPresupuesto() | number:'1.2-2' }}</td><td></td></tr></tfoot>
+            }
+          </table>
+
+          <div class="inline-add">
+            <div class="grid-4">
+              <div class="field"><label>Descripción del ítem</label><input [(ngModel)]="nuevoItem.descripcion" placeholder="Ej. Servicio de capacitación"></div>
+              <div class="field"><label>Bien o servicio</label><input [(ngModel)]="nuevoItem.nombreBienServicio" placeholder="Ej. Taller de 40h"></div>
+              <div class="field"><label>Cantidad</label><input type="number" min="1" [(ngModel)]="nuevoItem.cantidad"></div>
+              <div class="field"><label>Valor unitario (sin IVA)</label><input type="number" min="0" step="0.01" [(ngModel)]="nuevoItem.valorUnitario"></div>
+            </div>
+            <button class="btn btn-ochre btn-sm" (click)="agregarItem()">＋ Agregar ítem presupuestario</button>
+          </div>
+
+          <h4 style="margin-top:2em">Presupuesto de la entidad auspiciante/cooperante (opcional)</h4>
+          <div class="field" style="max-width:420px">
+            <label for="entAusp">Nombre de la entidad</label>
+            <input id="entAusp" [(ngModel)]="nombreEntidadAuspiciante" placeholder="Ej. GAD Municipal de Rumiñahui">
+          </div>
+          <table class="mini-table">
+            <thead><tr><th>Detalle del bien o servicio</th><th>Cant.</th><th>V.U. $</th><th>V. Total $</th><th></th></tr></thead>
+            <tbody>
+              @for (a of aporteItems; track $index; let i = $index) {
+                <tr>
+                  <td>{{ a.detalle }}</td>
+                  <td>{{ a.cantidad }}</td>
+                  <td>${{ a.valorUnitario | number:'1.2-2' }}</td>
+                  <td>${{ (a.cantidad * a.valorUnitario) | number:'1.2-2' }}</td>
+                  <td><button class="btn btn-danger btn-sm" (click)="quitarAporte(i)">Quitar</button></td>
+                </tr>
+              }
+              @if (aporteItems.length === 0) {
+                <tr><td colspan="5" class="muted">Sin aportes externos registrados.</td></tr>
+              }
+            </tbody>
+            @if (aporteItems.length > 0) {
+              <tfoot><tr><td colspan="3" style="text-align:right; font-weight:600">TOTAL</td><td style="font-weight:700">${{ totalAporteExterno() | number:'1.2-2' }}</td><td></td></tr></tfoot>
+            }
+          </table>
+          <div class="inline-add">
+            <div class="grid-4">
+              <div class="field"><label>Detalle</label><input [(ngModel)]="nuevoAporte.detalle" placeholder="Ej. Transporte para talleres"></div>
+              <div class="field"><label>Cantidad</label><input type="number" min="1" [(ngModel)]="nuevoAporte.cantidad"></div>
+              <div class="field"><label>Valor unitario</label><input type="number" min="0" step="0.01" [(ngModel)]="nuevoAporte.valorUnitario"></div>
+              <div class="field" style="display:flex; align-items:flex-end"><button class="btn btn-ghost btn-sm" (click)="agregarAporte()">＋ Agregar aporte</button></div>
+            </div>
+          </div>
+        }
+
+        @case (6) {
+          <h3>7. Cronograma de ejecución</h3>
+          <table class="mini-table">
+            <thead><tr><th>Actividad</th><th>Fecha inicio</th><th>Fecha fin</th><th></th></tr></thead>
+            <tbody>
+              @for (a of cronograma; track $index; let i = $index) {
+                <tr>
+                  <td>Actividad {{ i + 1 }}: {{ a.nombre }}</td>
+                  <td>{{ a.fechaInicio }}</td>
+                  <td>{{ a.fechaFin }}</td>
+                  <td><button class="btn btn-danger btn-sm" (click)="quitarActividad(i)">Quitar</button></td>
+                </tr>
+              }
+              @if (cronograma.length === 0) {
+                <tr><td colspan="4" class="muted">Agrega al menos una actividad para continuar.</td></tr>
+              }
+            </tbody>
+          </table>
+          <div class="inline-add">
+            <div class="grid-3">
+              <div class="field"><label>Nombre de la actividad</label><input [(ngModel)]="nuevaActividad.nombre" placeholder="Ej. Diagnóstico participativo"></div>
+              <div class="field"><label>Fecha inicio</label><input type="date" [(ngModel)]="nuevaActividad.fechaInicio"></div>
+              <div class="field"><label>Fecha fin</label><input type="date" [(ngModel)]="nuevaActividad.fechaFin"></div>
+            </div>
+            <button class="btn btn-ochre btn-sm" (click)="agregarActividad()">＋ Agregar actividad</button>
+          </div>
+        }
+
+        @case (7) {
+          <h3>8. Firmas de responsabilidad</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label for="fElab">Elaborado — Director/a de la nota conceptual</label>
+              <input id="fElab" [(ngModel)]="firmas.elaboradoPor">
+            </div>
+            <div class="field">
+              <label for="fRev">Revisado — Director/a de carrera</label>
+              <input id="fRev" [(ngModel)]="firmas.revisadoPor">
+            </div>
+            <div class="field">
+              <label for="fSup">Supervisado — Coordinador/a de vinculación</label>
+              <input id="fSup" [(ngModel)]="firmas.supervisadoPor">
+            </div>
+            <div class="field">
+              <label for="fApr">Aprobado — Director/a de departamento</label>
+              <input id="fApr" [(ngModel)]="firmas.aprobadoPor">
+            </div>
+          </div>
+
+          <div class="resumen-final">
+            <h4>Resumen antes de guardar</h4>
+            <ul>
+              <li><strong>Nota:</strong> {{ nombre || '—' }}</li>
+              <li><strong>Ítems presupuestarios:</strong> {{ itemsPresupuesto.length }} · Total ${{ totalPresupuesto() | number:'1.2-2' }}</li>
+              <li><strong>Actividades:</strong> {{ cronograma.length }}</li>
+            </ul>
+          </div>
+        }
+      }
+
+      <div class="wizard-actions">
+        @if (paso() > 0) { <button class="btn btn-ghost" (click)="anterior()">← Anterior</button> }
+        <div class="spacer"></div>
+        @if (paso() < pasos.length - 1) {
+          <button class="btn btn-primary" (click)="siguiente()">Siguiente →</button>
+        } @else {
+          <button class="btn btn-primary" (click)="guardar()">Guardar nota conceptual</button>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>

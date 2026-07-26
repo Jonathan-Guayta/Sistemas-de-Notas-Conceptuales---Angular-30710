@@ -1,0 +1,72 @@
+<div class="container">
+  <header class="page-head">
+    <p class="eyebrow">Sección 02 · Convocatorias</p>
+    <h1>Convocatorias institucionales</h1>
+    <p class="lede">Cada nota conceptual se registra dentro de una convocatoria vigente.</p>
+  </header>
+
+  @if (error()) {
+    <div class="alert">{{ error() }}</div>
+  }
+
+  @if (!mostrarFormulario()) {
+    <button class="btn btn-primary" (click)="abrirFormulario()">＋ Nueva convocatoria</button>
+  } @else {
+    <form class="card form-card" [formGroup]="form" (ngSubmit)="guardar()">
+      <h3>Nueva convocatoria</h3>
+      <div class="field">
+        <label for="nombre">Nombre de la convocatoria</label>
+        <input id="nombre" formControlName="nombre" placeholder="Ej. Convocatoria de Notas Conceptuales 2026"
+          [class.invalid]="form.controls.nombre.invalid && form.controls.nombre.touched">
+        @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+          <p class="field-error">Este campo es obligatorio.</p>
+        }
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="fi">Fecha de inicio</label>
+          <input id="fi" type="date" formControlName="fechaInicio"
+            [class.invalid]="form.controls.fechaInicio.invalid && form.controls.fechaInicio.touched">
+        </div>
+        <div class="field">
+          <label for="ff">Fecha de finalización</label>
+          <input id="ff" type="date" formControlName="fechaFin"
+            [class.invalid]="form.controls.fechaFin.invalid && form.controls.fechaFin.touched">
+        </div>
+      </div>
+      <div class="field">
+        <label for="desc">Descripción</label>
+        <textarea id="desc" formControlName="descripcion" placeholder="Objetivo general de la convocatoria..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar convocatoria</button>
+      </div>
+    </form>
+  }
+
+  <section class="list-section">
+    @if (data.convocatorias().length === 0) {
+      <p class="muted">No hay convocatorias registradas todavía.</p>
+    } @else {
+      <div class="conv-grid">
+        @for (c of data.convocatorias(); track c.id) {
+          <div class="card conv-card">
+            <div class="conv-card-head">
+              <span class="folio">{{ c.id }}</span>
+              <button class="btn btn-danger btn-sm" (click)="eliminar(c.id)">Eliminar</button>
+            </div>
+            <h3>{{ c.nombre }}</h3>
+            <p class="conv-dates">{{ c.fechaInicio }} → {{ c.fechaFin }}</p>
+            @if (c.descripcion) { <p class="conv-desc">{{ c.descripcion }}</p> }
+            <div class="conv-footer">
+              <span>{{ data.notasPorConvocatoria(c.id).length }} nota(s)</span>
+              <span>${{ data.presupuestoGeneralPorConvocatoria(c.id) | number:'1.0-2' }} solicitado</span>
+            </div>
+            <a class="btn btn-ghost btn-sm" [routerLink]="['/notas']" [queryParams]="{convocatoria: c.id}">Ver notas →</a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

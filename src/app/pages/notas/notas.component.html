@@ -1,0 +1,45 @@
+<div class="container">
+  <header class="page-head">
+    <p class="eyebrow">Sección 04 · Notas conceptuales</p>
+    <h1>Todas las notas conceptuales</h1>
+    <p class="lede">Busca por código o nombre, filtra por estado o convocatoria.</p>
+  </header>
+
+  <div class="toolbar card">
+    <input type="text" placeholder="Buscar por código o nombre..." [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
+    <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+      <option value="">Todos los estados</option>
+      @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
+    </select>
+    <select [ngModel]="filtroConvocatoria()" (ngModelChange)="filtroConvocatoria.set($event)">
+      <option value="">Todas las convocatorias</option>
+      @for (c of data.convocatorias(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+    </select>
+    <a routerLink="/notas/nueva" class="btn btn-primary">＋ Nueva nota</a>
+  </div>
+
+  @if (notasFiltradas().length === 0) {
+    <p class="muted" style="margin-top:1.2em">No se encontraron notas conceptuales con esos criterios.</p>
+  } @else {
+    <div class="card" style="margin-top:1.2em">
+      <table>
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Director</th><th>Sede</th><th>Estado</th><th>Presupuesto</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (n of notasFiltradas(); track n.codigo) {
+            <tr>
+              <td class="folio">{{ n.codigo }}</td>
+              <td>{{ n.datosGenerales.nombre }}</td>
+              <td>{{ directorNombre(n.datosGenerales.directorId) }}</td>
+              <td>{{ n.datosGenerales.sede }}</td>
+              <td><span class="sello" [ngClass]="selloClase(n.estado)">{{ n.estado }}</span></td>
+              <td>${{ presupuestoTotalNota(n) | number:'1.0-2' }}</td>
+              <td><a [routerLink]="['/notas', n.codigo]" class="btn btn-ghost btn-sm">Ver →</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

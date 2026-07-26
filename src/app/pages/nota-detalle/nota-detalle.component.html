@@ -1,0 +1,224 @@
+<div class="container">
+  @if (!nota()) {
+    <div class="card empty-state">
+      <h3>No se encontró la nota "{{ codigo() }}"</h3>
+      <a routerLink="/notas" class="btn btn-primary">Volver al listado</a>
+    </div>
+  } @else {
+    <header class="page-head detalle-head">
+      <div>
+        <p class="eyebrow folio">{{ nota()!.codigo }}</p>
+        <h1>{{ nota()!.datosGenerales.nombre }}</h1>
+        <p class="lede">
+          {{ convocatoria()?.nombre }} · {{ nota()!.datosGenerales.sede }} / {{ nota()!.datosGenerales.departamento }}
+        </p>
+      </div>
+      <span class="sello sello-lg" [ngClass]="selloClase(nota()!.estado)">{{ nota()!.estado }}</span>
+    </header>
+
+    @if (error()) { <div class="alert">{{ error() }}</div> }
+    @if (mensaje()) { <div class="alert-ok">{{ mensaje() }}</div> }
+
+    <section class="card estado-panel">
+      <h3>Trámite de la nota</h3>
+      <div class="estado-actions">
+        @if (nota()!.estado !== EstadoNota.EN_REVISION) {
+          <button class="btn btn-ghost btn-sm" (click)="cambiarEstado(EstadoNota.EN_REVISION)">Enviar a revisión</button>
+        }
+        @if (nota()!.estado !== EstadoNota.APROBADA) {
+          <button class="btn btn-primary btn-sm" (click)="cambiarEstado(EstadoNota.APROBADA)">Aprobar</button>
+        }
+        @if (nota()!.estado !== EstadoNota.RECHAZADA) {
+          <button class="btn btn-danger btn-sm" (click)="cambiarEstado(EstadoNota.RECHAZADA)">Rechazar</button>
+        }
+        @if (nota()!.estado !== EstadoNota.REGISTRADA) {
+          <button class="btn btn-ghost btn-sm" (click)="cambiarEstado(EstadoNota.REGISTRADA)">Volver a registrada</button>
+        }
+      </div>
+      <p class="field-hint">Enviar a revisión o aprobar exige al menos un ítem presupuestario, una actividad y no superar USD 20 000,00.</p>
+    </section>
+
+    <div class="detalle-grid">
+      <section class="card">
+        <h3>1 · Datos generales</h3>
+        <dl class="dl">
+          <dt>Director/a</dt><dd>{{ director()?.nombres }} — {{ director()?.correo }}</dd>
+          <dt>Plazo de ejecución</dt><dd>{{ nota()!.datosGenerales.fechaInicio }} → {{ nota()!.datosGenerales.fechaFin }}</dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h3>2 · Localización</h3>
+        <dl class="dl">
+          <dt>Cobertura</dt><dd>{{ nota()!.localizacion.cobertura.join(', ') || '—' }}</dd>
+          <dt>Provincia / Cantón</dt><dd>{{ nota()!.localizacion.provincia || '—' }} / {{ nota()!.localizacion.canton || '—' }}</dd>
+          <dt>Parroquia / Barrio</dt><dd>{{ nota()!.localizacion.parroquia || '—' }} / {{ nota()!.localizacion.barrio || '—' }}</dd>
+          <dt>Sector</dt>
+          <dd>
+            @if (nota()!.poblacion.sector.urbanoMarginal) { <span class="tag">Urbano marginal</span> }
+            @if (nota()!.poblacion.sector.rural) { <span class="tag">Rural</span> }
+            @if (nota()!.poblacion.sector.grupoAtencionPrioritaria) { <span class="tag">Grupo de atención prioritaria</span> }
+          </dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h3>3 · Alineamiento</h3>
+        <dl class="dl">
+          <dt>Ámbitos</dt>
+          <dd>
+            @if (nota()!.alineamiento.ambitos.desarrolloTerritorial) { <span class="tag">Desarrollo Territorial</span> }
+            @if (nota()!.alineamiento.ambitos.sostenibilidadAmbiental) { <span class="tag">Sostenibilidad Ambiental</span> }
+            @if (nota()!.alineamiento.ambitos.innovacionSocial) { <span class="tag">Innovación Social</span> }
+          </dd>
+          <dt>ODS</dt><dd>{{ nota()!.alineamiento.odsObjetivo || '—' }}<br><small>{{ nota()!.alineamiento.odsMeta }}</small></dd>
+          <dt>CINE-UNESCO</dt><dd>{{ nota()!.alineamiento.cineCampoDetallado || nota()!.alineamiento.cineCampoEspecifico || nota()!.alineamiento.cineCampoAmplio || '—' }}</dd>
+          <dt>PND</dt><dd>{{ nota()!.alineamiento.pndObjetivo || '—' }}<br><small>{{ nota()!.alineamiento.pndPolitica }}</small></dd>
+          <dt>Plan Estratégico Institucional</dt><dd>{{ nota()!.alineamiento.peiObjetivo || '—' }}<br><small>{{ nota()!.alineamiento.peiEstrategia }}</small></dd>
+          <dt>Línea de investigación</dt><dd>{{ nota()!.alineamiento.lineaInvestigacion || '—' }}</dd>
+          <dt>Dominio académico</dt><dd>{{ nota()!.alineamiento.dominioAcademico || nota()!.alineamiento.dominioInstitucional || '—' }}</dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h3>4 · Población objetivo</h3>
+        <dl class="dl">
+          <dt>Referencia</dt><dd>{{ nota()!.poblacion.poblacionReferencia | number }}</dd>
+          <dt>Potencial</dt><dd>{{ nota()!.poblacion.poblacionPotencial | number }}</dd>
+          <dt>Objetivo / beneficiario directo</dt><dd>{{ nota()!.poblacion.poblacionObjetivo | number }}</dd>
+        </dl>
+      </section>
+
+      @if (nota()!.departamentosParticipantes.length || nota()!.carrerasParticipantes.length) {
+        <section class="card span-2">
+          <h3>Equipo participante</h3>
+          @if (nota()!.departamentosParticipantes.length) {
+            <table class="mini-table">
+              <thead><tr><th>Sede</th><th>Departamento</th><th>Objetivo</th><th>Docentes</th></tr></thead>
+              <tbody>
+                @for (d of nota()!.departamentosParticipantes; track $index) {
+                  <tr><td>{{ d.sede }}</td><td>{{ d.departamento }}</td><td>{{ d.objetivoNota }}</td><td>{{ d.nroDocentes }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (nota()!.carrerasParticipantes.length) {
+            <table class="mini-table">
+              <thead><tr><th>Sede</th><th>Carrera</th><th>Objetivo</th><th>Estudiantes</th></tr></thead>
+              <tbody>
+                @for (c of nota()!.carrerasParticipantes; track $index) {
+                  <tr><td>{{ c.sede }}</td><td>{{ c.carrera }}</td><td>{{ c.objetivoNota }}</td><td>{{ c.nroEstudiantes }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+        </section>
+      }
+
+      <section class="card span-2">
+        <div class="section-head">
+          <h3>Presupuesto institucional</h3>
+          <button class="btn btn-ghost btn-sm" (click)="mostrarFormItem.set(!mostrarFormItem())">{{ mostrarFormItem() ? 'Cancelar' : '＋ Agregar ítem' }}</button>
+        </div>
+        <table>
+          <thead><tr><th>Ítem</th><th>Descripción</th><th>Bien/servicio</th><th>Cant.</th><th>V. Unit.</th><th>Total</th><th></th></tr></thead>
+          <tbody>
+            @for (it of nota()!.itemsPresupuesto; track it.numeroItem) {
+              <tr>
+                <td class="folio">{{ it.numeroItem }}</td>
+                <td>{{ it.descripcion }}</td>
+                <td>{{ it.nombreBienServicio }}</td>
+                <td>{{ it.cantidad }}</td>
+                <td>${{ it.valorUnitario | number:'1.2-2' }}</td>
+                <td>${{ (it.cantidad * it.valorUnitario) | number:'1.2-2' }}</td>
+                <td><button class="btn btn-danger btn-sm" (click)="quitarItem(it.numeroItem)">Quitar</button></td>
+              </tr>
+            }
+            @if (nota()!.itemsPresupuesto.length === 0) { <tr><td colspan="7" class="muted">Sin ítems registrados.</td></tr> }
+          </tbody>
+          @if (nota()!.itemsPresupuesto.length > 0) {
+            <tfoot><tr><td colspan="5" style="text-align:right;font-weight:600">TOTAL</td><td style="font-weight:700">${{ presupuestoTotalNota(nota()!) | number:'1.2-2' }}</td><td></td></tr></tfoot>
+          }
+        </table>
+        @if (mostrarFormItem()) {
+          <div class="inline-add">
+            <div class="grid-4">
+              <div class="field"><label>Descripción</label><input [(ngModel)]="nuevoItem.descripcion"></div>
+              <div class="field"><label>Bien o servicio</label><input [(ngModel)]="nuevoItem.nombreBienServicio"></div>
+              <div class="field"><label>Cantidad</label><input type="number" min="1" [(ngModel)]="nuevoItem.cantidad"></div>
+              <div class="field"><label>Valor unitario</label><input type="number" min="0" step="0.01" [(ngModel)]="nuevoItem.valorUnitario"></div>
+            </div>
+            <button class="btn btn-ochre btn-sm" (click)="agregarItem()">Guardar ítem</button>
+          </div>
+        }
+        @if (nota()!.presupuestoAuspiciante.items.length > 0) {
+          <h4 style="margin-top:1.4em">Aporte de {{ nota()!.presupuestoAuspiciante.nombreEntidad }}</h4>
+          <table>
+            <thead><tr><th>Detalle</th><th>Cant.</th><th>V.U.</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (a of nota()!.presupuestoAuspiciante.items; track $index) {
+                <tr><td>{{ a.detalle }}</td><td>{{ a.cantidad }}</td><td>${{ a.valorUnitario | number:'1.2-2' }}</td><td>${{ (a.cantidad*a.valorUnitario) | number:'1.2-2' }}</td></tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <section class="card span-2">
+        <div class="section-head">
+          <h3>Cronograma de ejecución</h3>
+          <button class="btn btn-ghost btn-sm" (click)="mostrarFormActividad.set(!mostrarFormActividad())">{{ mostrarFormActividad() ? 'Cancelar' : '＋ Agregar actividad' }}</button>
+        </div>
+        <table>
+          <thead><tr><th>Actividad</th><th>Inicio</th><th>Fin</th><th></th></tr></thead>
+          <tbody>
+            @for (a of nota()!.cronograma; track $index; let i = $index) {
+              <tr><td>Actividad {{ i + 1 }}: {{ a.nombre }}</td><td>{{ a.fechaInicio }}</td><td>{{ a.fechaFin }}</td>
+                <td><button class="btn btn-danger btn-sm" (click)="quitarActividad(i)">Quitar</button></td>
+              </tr>
+            }
+            @if (nota()!.cronograma.length === 0) { <tr><td colspan="4" class="muted">Sin actividades registradas.</td></tr> }
+          </tbody>
+        </table>
+        @if (mostrarFormActividad()) {
+          <div class="inline-add">
+            <div class="grid-3">
+              <div class="field"><label>Nombre</label><input [(ngModel)]="nuevaActividad.nombre"></div>
+              <div class="field"><label>Fecha inicio</label><input type="date" [(ngModel)]="nuevaActividad.fechaInicio"></div>
+              <div class="field"><label>Fecha fin</label><input type="date" [(ngModel)]="nuevaActividad.fechaFin"></div>
+            </div>
+            <button class="btn btn-ochre btn-sm" (click)="agregarActividad()">Guardar actividad</button>
+          </div>
+        }
+      </section>
+
+      @if (nota()!.impactos.economico || nota()!.impactos.social || nota()!.impactos.politico || nota()!.impactos.cientifico || nota()!.impactos.ambiental || nota()!.impactos.otros) {
+        <section class="card span-2">
+          <h3>Impactos esperados</h3>
+          <dl class="dl">
+            @if (nota()!.impactos.economico) { <dt>Económico</dt><dd>{{ nota()!.impactos.economico }}</dd> }
+            @if (nota()!.impactos.social) { <dt>Social</dt><dd>{{ nota()!.impactos.social }}</dd> }
+            @if (nota()!.impactos.politico) { <dt>Político</dt><dd>{{ nota()!.impactos.politico }}</dd> }
+            @if (nota()!.impactos.cientifico) { <dt>Científico</dt><dd>{{ nota()!.impactos.cientifico }}</dd> }
+            @if (nota()!.impactos.ambiental) { <dt>Ambiental</dt><dd>{{ nota()!.impactos.ambiental }}</dd> }
+            @if (nota()!.impactos.otros) { <dt>Otros</dt><dd>{{ nota()!.impactos.otros }}</dd> }
+          </dl>
+        </section>
+      }
+
+      <section class="card span-2">
+        <h3>Firmas de responsabilidad</h3>
+        <div class="firmas-grid">
+          <div><strong>Elaborado</strong><span>{{ nota()!.firmas.elaboradoPor || '—' }}</span><small>Director/a de la nota conceptual</small></div>
+          <div><strong>Revisado</strong><span>{{ nota()!.firmas.revisadoPor || '—' }}</span><small>Director/a de carrera</small></div>
+          <div><strong>Supervisado</strong><span>{{ nota()!.firmas.supervisadoPor || '—' }}</span><small>Coordinador/a de vinculación</small></div>
+          <div><strong>Aprobado</strong><span>{{ nota()!.firmas.aprobadoPor || '—' }}</span><small>Director/a de departamento</small></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="danger-zone">
+      <button class="btn btn-danger" (click)="eliminarNota()">Eliminar nota conceptual</button>
+    </div>
+  }
+</div>

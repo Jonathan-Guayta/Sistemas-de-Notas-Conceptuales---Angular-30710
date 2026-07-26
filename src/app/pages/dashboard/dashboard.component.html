@@ -1,0 +1,87 @@
+<div class="container">
+  <header class="page-head">
+    <p class="eyebrow">Sección 01 · Panel general</p>
+    <h1>El estado de la convocatoria, de un vistazo</h1>
+    <p class="lede">
+      Registra convocatorias y directores, abre notas conceptuales nuevas y sigue su trámite
+      —de <em>Registrada</em> a <em>Aprobada</em>— siguiendo la estructura del Anexo 1.
+    </p>
+  </header>
+
+  @if (totalNotas() === 0 && totalConvocatorias() === 0) {
+    <div class="card empty-state">
+      <h3>Aún no hay nada cargado</h3>
+      <p>Empieza creando una convocatoria y registrando al director responsable; luego podrás abrir la primera nota conceptual.</p>
+      <div class="empty-actions">
+        <a routerLink="/convocatorias" class="btn btn-primary">Crear convocatoria</a>
+        <a routerLink="/directores" class="btn btn-ghost">Registrar director</a>
+      </div>
+    </div>
+  } @else {
+    <section class="stat-grid">
+      <div class="card stat">
+        <span class="stat-label">Convocatorias</span>
+        <span class="stat-value">{{ totalConvocatorias() }}</span>
+        <a routerLink="/convocatorias" class="stat-link">Ver todas →</a>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Directores registrados</span>
+        <span class="stat-value">{{ totalDirectores() }}</span>
+        <a routerLink="/directores" class="stat-link">Ver todos →</a>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Notas conceptuales</span>
+        <span class="stat-value">{{ totalNotas() }}</span>
+        <a routerLink="/notas" class="stat-link">Ver todas →</a>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Presupuesto solicitado</span>
+        <span class="stat-value">${{ data.presupuestoGeneral() | number:'1.0-2' }}</span>
+        <span class="stat-hint">suma de todas las notas</span>
+      </div>
+    </section>
+
+    <section class="grid-2 lower-grid">
+      <div class="card panel">
+        <h3>Notas por estado</h3>
+        <ul class="estado-list">
+          <li>
+            <span class="sello registrada">Registrada</span>
+            <span class="estado-count">{{ porEstado()[EstadoNota.REGISTRADA] }}</span>
+          </li>
+          <li>
+            <span class="sello en-revision">En revisión</span>
+            <span class="estado-count">{{ porEstado()[EstadoNota.EN_REVISION] }}</span>
+          </li>
+          <li>
+            <span class="sello aprobada">Aprobada</span>
+            <span class="estado-count">{{ porEstado()[EstadoNota.APROBADA] }}</span>
+          </li>
+          <li>
+            <span class="sello rechazada">Rechazada</span>
+            <span class="estado-count">{{ porEstado()[EstadoNota.RECHAZADA] }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card panel">
+        <h3>Notas registradas recientemente</h3>
+        @if (recientes().length === 0) {
+          <p class="muted">Todavía no se ha registrado ninguna nota conceptual.</p>
+        } @else {
+          <ul class="recent-list">
+            @for (n of recientes(); track n.codigo) {
+              <li>
+                <a [routerLink]="['/notas', n.codigo]">
+                  <span class="folio">{{ n.codigo }}</span>
+                  <span class="recent-name">{{ n.datosGenerales.nombre || 'Sin nombre' }}</span>
+                  <span class="sello" [ngClass]="n.estado === EstadoNota.REGISTRADA ? 'registrada' : n.estado === EstadoNota.EN_REVISION ? 'en-revision' : n.estado === EstadoNota.APROBADA ? 'aprobada' : 'rechazada'">{{ n.estado }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -1,0 +1,84 @@
+<div class="container">
+  <header class="page-head">
+    <p class="eyebrow">Sección 03 · Directores</p>
+    <h1>Directores de notas conceptuales</h1>
+    <p class="lede">Docentes responsables que pueden dirigir una o varias notas conceptuales.</p>
+  </header>
+
+  @if (error()) {
+    <div class="alert">{{ error() }}</div>
+  }
+
+  @if (!mostrarFormulario()) {
+    <button class="btn btn-primary" (click)="abrirFormulario()">＋ Registrar director</button>
+  } @else {
+    <form class="card form-card" [formGroup]="form" (ngSubmit)="guardar()">
+      <h3>Registrar director</h3>
+      <div class="field">
+        <label for="nombres">Nombres y apellidos</label>
+        <input id="nombres" formControlName="nombres" placeholder="Ej. Ing. María Fernanda Cevallos"
+          [class.invalid]="form.controls.nombres.invalid && form.controls.nombres.touched">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="correo">Correo electrónico</label>
+          <input id="correo" type="email" formControlName="correo" placeholder="nombre@espe.edu.ec"
+            [class.invalid]="form.controls.correo.invalid && form.controls.correo.touched">
+          @if (form.controls.correo.invalid && form.controls.correo.touched) {
+            <p class="field-error">Ingresa un correo electrónico válido.</p>
+          }
+        </div>
+        <div class="field">
+          <label for="celular">Teléfono celular</label>
+          <input id="celular" formControlName="celular" placeholder="09XXXXXXXX"
+            [class.invalid]="form.controls.celular.invalid && form.controls.celular.touched">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="sede">Sede / Unidad Académica Especial</label>
+          <select id="sede" formControlName="sede">
+            @for (s of sedes; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label for="depto">Departamento</label>
+          <select id="depto" formControlName="departamento">
+            @for (d of departamentos; track d) { <option [value]="d">{{ d }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar director</button>
+      </div>
+    </form>
+  }
+
+  <section class="list-section">
+    @if (data.directores().length === 0) {
+      <p class="muted">No hay directores registrados todavía.</p>
+    } @else {
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Nombres</th><th>Correo</th><th>Celular</th><th>Sede</th><th>Departamento</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (d of data.directores(); track d.id) {
+              <tr>
+                <td class="folio">{{ d.id }}</td>
+                <td>{{ d.nombres }}</td>
+                <td>{{ d.correo }}</td>
+                <td>{{ d.celular }}</td>
+                <td>{{ d.sede }}</td>
+                <td>{{ d.departamento }}</td>
+                <td><button class="btn btn-danger btn-sm" (click)="eliminar(d.id)">Eliminar</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
